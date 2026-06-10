@@ -4,7 +4,6 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
 
 /**
  * @title CrashBytesNFT
@@ -12,9 +11,8 @@ import "@openzeppelin/contracts/utils/Counters.sol";
  * @author Michael Eakins - CrashBytes
  */
 contract CrashBytesNFT is ERC721, ERC721URIStorage, Ownable {
-    using Counters for Counters.Counter;
-    
-    Counters.Counter private _tokenIds;
+    // Tracks the most recently minted token ID (also serves as total supply)
+    uint256 private _tokenIds;
     
     // Maximum supply of NFTs
     uint256 public constant MAX_SUPPLY = 10000;
@@ -60,15 +58,15 @@ contract CrashBytesNFT is ERC721, ERC721URIStorage, Ownable {
         returns (uint256)
     {
         require(saleIsActive, "Sale is not active");
-        require(_tokenIds.current() < MAX_SUPPLY, "Max supply reached");
+        require(_tokenIds < MAX_SUPPLY, "Max supply reached");
         require(msg.value >= mintPrice, "Insufficient payment");
         require(
             mintedPerAddress[recipient] < MAX_PER_ADDRESS,
             "Max mints per address reached"
         );
-        
-        _tokenIds.increment();
-        uint256 newTokenId = _tokenIds.current();
+
+        _tokenIds++;
+        uint256 newTokenId = _tokenIds;
         
         _safeMint(recipient, newTokenId);
         _setTokenURI(newTokenId, tokenURI);
@@ -92,13 +90,13 @@ contract CrashBytesNFT is ERC721, ERC721URIStorage, Ownable {
             "Arrays must have equal length"
         );
         require(
-            _tokenIds.current() + recipients.length <= MAX_SUPPLY,
+            _tokenIds + recipients.length <= MAX_SUPPLY,
             "Would exceed max supply"
         );
-        
+
         for (uint256 i = 0; i < recipients.length; i++) {
-            _tokenIds.increment();
-            uint256 newTokenId = _tokenIds.current();
+            _tokenIds++;
+            uint256 newTokenId = _tokenIds;
             
             _safeMint(recipients[i], newTokenId);
             _setTokenURI(newTokenId, tokenURIs[i]);
@@ -144,7 +142,7 @@ contract CrashBytesNFT is ERC721, ERC721URIStorage, Ownable {
      * @return Current total supply
      */
     function totalSupply() public view returns (uint256) {
-        return _tokenIds.current();
+        return _tokenIds;
     }
     
     /**
@@ -167,17 +165,6 @@ contract CrashBytesNFT is ERC721, ERC721URIStorage, Ownable {
         returns (string memory)
     {
         return super.tokenURI(tokenId);
-    }
-    
-    /**
-     * @dev Required override for OpenZeppelin contracts
-     * @param tokenId Token ID
-     */
-    function _burn(uint256 tokenId)
-        internal
-        override(ERC721, ERC721URIStorage)
-    {
-        super._burn(tokenId);
     }
     
     /**

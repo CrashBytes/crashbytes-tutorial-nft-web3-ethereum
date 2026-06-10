@@ -159,9 +159,14 @@ describe("CrashBytesNFT", function () {
     it("Should reject batch mint exceeding supply", async function () {
       const recipients = new Array(10001).fill(addr1.address);
       const tokenURIs = new Array(10001).fill("token");
-      
+
+      // The 10,001-element calldata is large, so an explicit gasLimit is
+      // supplied. This bypasses automatic gas estimation (which, on recent
+      // Hardhat/EDR versions, surfaces a reasonless revert for oversized
+      // calldata) so the on-chain "Would exceed max supply" revert reason
+      // is reached and asserted.
       await expect(
-        crashBytesNFT.batchMint(recipients, tokenURIs)
+        crashBytesNFT.batchMint(recipients, tokenURIs, { gasLimit: 30000000 })
       ).to.be.revertedWith("Would exceed max supply");
     });
   });

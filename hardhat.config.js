@@ -1,21 +1,22 @@
 require("@nomicfoundation/hardhat-toolbox");
-require("@nomiclabs/hardhat-waffle");
-require("@nomiclabs/hardhat-ethers");
 require("dotenv").config();
 
 module.exports = {
   solidity: {
-    version: "0.8.20",
+    version: "0.8.28",
     settings: {
       optimizer: {
         enabled: true,
         runs: 200
-      }
+      },
+      evmVersion: "cancun"
     }
   },
   networks: {
     hardhat: {
-      chainId: 1337
+      chainId: 1337,
+      hardfork: "cancun",
+      blockGasLimit: 30000000
     },
     localhost: {
       url: "http://127.0.0.1:8545"
